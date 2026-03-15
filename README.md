@@ -6,7 +6,7 @@ Search for the data product Cashflow and click on the tile to open.
 ![Data Profuct](./image1.png)
  
 ![Data Profuct](./image2.png)
-# ----------------------------------------------------------------------------------------------- 
+# ----------------------------------------------------------
 # STEP 2: 
 On the detail page click on the Share-button and share with linked Databricks system.
  
@@ -14,17 +14,19 @@ On the detail page click on the Share-button and share with linked Databricks sy
 ![Data Profuct](./image3.png)
  
  
-# -----------------------------------------------------------------------------------------------
+# ----------------------------------------------------------
 # STEP 3:
 Login SAP Databricks and navigate to the Unity Catalog  Navigate to the Delta Shares Received, find the table cashflow.
  
 ![Data Profuct](./image4.png)
  
-# ----------------------------------------------------------------------------------------------- 
+# ----------------------------------------------------------
+
 # STEP 4:
 Before you start writing the code to get the timeseries data and to generate trained model. Better to create one space for you. For Ex: I created , Schema "grp01" and catalogue "deep_uc_cash_liquidity_forecast_1" in Databricks
 
-# -----------------------------------------------------------------------------------------------
+# ----------------------------------------------------------
+
 # STEP 5:
 Following code is to use the cashflow data product and Prepare data for time series forecasting
  
@@ -79,7 +81,8 @@ fe_client.write_table(
     mode="merge"
 )
 
-# -----------------------------------------------------------------------------------------------
+# ----------------------------------------------------------
+
 # STEP 6:
  In case, your volume of data is too small then increase the volume of data by some random values else you will find issues running the code to train the model. 
  
@@ -262,9 +265,9 @@ assert safe_params["input_size"] + FORECAST_LENGTH <= int(lens.min()), \
  
 After execution of the above code, You can see Model "Cash_liquidity_nhits"
 
-![Data Profuct](./image5-Step7 last.png)
+![Data Profuct](./image5 - Step7 last.png)
 
-#  -----------------------------------------------------------------------------------------------
+# ----------------------------------------------------------
  
  
 # STEP 8:
@@ -327,7 +330,7 @@ prediction.write.format("delta")\
  
 After execution of above code, You can find generated table:
  
-# -----------------------------------------------------------------------------------------------
+# ----------------------------------------------------------
  
 # STEP 9:
 To  publish the cashflow prediction results to the data catalog of SAP Business Data Cloud. For that you can build a custom data product by using the python library sap-bdc-connect-sdk. You can utilize the Delta Share protocol, which allows you share the data product without the need of copying the result table. The result table remains persisted in SAP Databricks, and will be remotely accessible from the data catalog.
@@ -336,7 +339,7 @@ To  publish the cashflow prediction results to the data catalog of SAP Business 
 Once your custom Data production if available for Cashflow with Forecasted data then you can use that data product directly in SAP Aanltyics Cloud and show the forecast reports on the Cashflow. 
  
 Please Try to use your custom Data Product in SAC Or Intelligent app & share details with me too. 
-Happy Learning 😊 
+# Happy Learning 😊 
 
 Cheers:
 Deepesh Gupta
