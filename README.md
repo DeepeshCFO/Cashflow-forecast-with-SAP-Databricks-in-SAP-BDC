@@ -119,14 +119,15 @@ df_updated = (
 df_updated.write.format("delta").mode("overwrite").option("overwriteSchema", "false").saveAsTable(full_name)
 df = spark.read.table(full_name)
 display(df)
- 
-Step7: 
+````
+# Step7: 
 Train the forecasting model
  
 We are using:
 •	mlflow: Tracking of our ML model
 •	neuralforecast: is a comprehensive suite of neural network-based models for time series forecasting. It's designed to be scalable, user-friendly, and highly performant, making it suitable for both researchers and practitioners.
- 
+
+```
 #---------- Dependencies ----------
 #NOTE: In Databricks, use '==' for versions.
 %pip install pydantic==1.10.13
