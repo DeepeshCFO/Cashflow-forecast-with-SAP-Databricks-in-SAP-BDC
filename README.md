@@ -1,30 +1,30 @@
 
-Step 1: 
+# STEP 1:
 Login to SAP Business Data Cloud Cockpit and click on Searchto navigate to the Data Catalog and 
 Search for the data product Cashflow and click on the tile to open.
  
  
  
  
- 
-Step2: 
+# ----------------------------------------------------------------------------------------------- 
+# STEP 2: 
 On the detail page click on the Share-button and share with linked Databricks system.
  
  
  
  
- 
-Step3: 
+# -----------------------------------------------------------------------------------------------
+# STEP 3:
 Login SAP Databricks and navigate to the Unity Catalog  Navigate to the Delta Shares Received, find the table cashflow.
  
  
  
- 
- 
-Step4:  
+# ----------------------------------------------------------------------------------------------- 
+# STEP 4:
 Before you start writing the code to get the timeseries data and to generate trained model. Better to create one space for you. For Ex: I created , Schema "grp01" and catalogue "deep_uc_cash_liquidity_forecast_1" in Databricks
- 
- Step5:
+
+# -----------------------------------------------------------------------------------------------
+# STEP 5:
 Following code is to use the cashflow data product and Prepare data for time series forecasting
  
 %pip install databricks-feature-engineering==0.13.0
@@ -35,17 +35,17 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import to_date, col, date_trunc, sum, explode, sequence, min, max, lit, expr
 spark = SparkSession.builder.appName("cash_flow_data_preparation").getOrCreate()
 data = spark.read.table("cashflowdbx.cashflow.cashflow")
-# Floor date and rename columns
+#Floor date and rename columns
 data = data.\
     withColumn("PostingDate", date_trunc("month", col("PostingDate")).cast("date")).\
     withColumnsRenamed({"PostingDate": "ds", "Company_Code": "CompanyCode", "AmountInCompanyCodeCurrency": "y"})
-# aggregate time series on date and sum cash flow into a dataframe time_series_data
+#aggregate time series on date and sum cash flow into a dataframe time_series_data
 time_series_data = data.\
     select("ds", "CompanyCode", "y").\
     groupBy("ds", "CompanyCode").\
     agg(sum("y").alias("y")).\
     orderBy("ds")
-# generate continous time series sequence
+#generate continous time series sequence
 date_sequence_data = time_series_data\
     .select(
         explode(
@@ -54,12 +54,12 @@ date_sequence_data = time_series_data\
 date_company_combination = time_series_data.select("CompanyCode").\
     distinct().\
     join(date_sequence_data, how="cross")
-# join time series data together with time series sequence
+#join time series data together with time series sequence
 time_series_data = time_series_data.\
     join(date_company_combination, on=["ds", "CompanyCode"], how="right").\
     fillna(0, subset=["y"])
 display(time_series_data)
-# (A) Set / create catalog & schema from Python
+#(A) Set / create catalog & schema from Python
 spark.sql("CREATE CATALOG IF NOT EXISTS deep_uc_cash_liquidity_forecast_1")
 spark.sql("USE CATALOG deep_uc_cash_liquidity_forecast_1")
 spark.sql("CREATE SCHEMA IF NOT EXISTS grp01")
@@ -77,16 +77,17 @@ fe_client.write_table(
     df= time_series_data,
     mode="merge"
 )
-  
-Step6: 
+
+# -----------------------------------------------------------------------------------------------
+# STEP 6:
  In case, your volume of data is too small then increase the volume of data by some random values else you will find issues running the code to train the model. 
  
 from pyspark.sql import SparkSession
-# from databricks.feature_engineering import FeatureEngineeringClient, FeatureLookup
+#from databricks.feature_engineering import FeatureEngineeringClient, FeatureLookup
 from pyspark.sql import functions as F
-# (A) Set / create catalog & schema from Python
-# spark.sql("USE CATALOG workspace")
-# spark.sql("USE SCHEMA default")
+#(A) Set / create catalog & schema from Python
+#spark.sql("USE CATALOG workspace")
+#spark.sql("USE SCHEMA default")
 catalog = "deep_uc_cash_liquidity_forecast_1"
 schema  = "grp01"
 table   = "prepared_cash_flow_time_series"
@@ -94,10 +95,10 @@ full_name = f"{catalog}.{schema}.{table}"
 df = spark.table(full_name)
 df = spark.read.table(full_name)
 display(df)
-# Bounds for randoms
+#Bounds for randoms
 min_val = F.lit(1.0)
 max_val = F.lit(100000.0)
-# Build a random value in [min_val, max_val], with optional seed
+#Build a random value in [min_val, max_val], with optional seed
 rand_col = F.rand()  # or F.rand(seed=20260223)  # reproducibl
 df_updated = (
     df.withColumn(
@@ -108,7 +109,7 @@ df_updated = (
             .cast(df.schema["y"].dataType)  # keep original type
     )
 )
-# Overwrite the table atomically
+#Overwrite the table atomically
 df_updated.write.format("delta").mode("overwrite").option("overwriteSchema", "false").saveAsTable(full_name)
 df = spark.read.table(full_name)
 display(df)
@@ -120,14 +121,14 @@ We are using:
 •	mlflow: Tracking of our ML model
 •	neuralforecast: is a comprehensive suite of neural network-based models for time series forecasting. It's designed to be scalable, user-friendly, and highly performant, making it suitable for both researchers and practitioners.
  
-# ---------- Dependencies ----------
-# NOTE: In Databricks, use '==' for versions.
+#---------- Dependencies ----------
+#NOTE: In Databricks, use '==' for versions.
 %pip install pydantic==1.10.13
 %pip install mlflow==3.5.0
 %pip install neuralforecast==3.1.2
-# %restart_python
+#%restart_python
  
-# ---------- Imports ----------
+#---------- Imports ----------
 import pydantic
 import ray
 import mlflow
@@ -139,15 +140,15 @@ from pyspark.sql.functions import col
 from neuralforecast.core import NeuralForecast
 from neuralforecast.auto import AutoNHITS
 from neuralforecast.models import NHITS
-# import mlflow
+#import mlflow
 from mlflow.models import infer_signature
 from mlflow.client import MlflowClient
-# ---------- Catalog / Table ----------
+#---------- Catalog / Table ----------
 catalog = "deep_uc_cash_liquidity_forecast_1"
 schema  = "grp01"
 table   = "prepared_cash_flow_time_series"
 full_name = f"{catalog}.{schema}.{table}"
-# ---------- Load & basic prep ----------
+#---------- Load & basic prep ----------
 data = spark.read.table(full_name).select("ds", "CompanyCode", "y")
 data = data.withColumn("y", col("y").cast("float"))
 FORECAST_LENGTH = 6
@@ -161,11 +162,11 @@ train_data_df = train_data.toPandas()
 train_data_df["ds"] = pd.to_datetime(train_data_df["ds"])
 test_data_df = test_data.toPandas()
 test_data_df["ds"] = pd.to_datetime(test_data_df["ds"])
-# ---------- MLflow setup ----------
+#---------- MLflow setup ----------
 mlflow.set_tracking_uri("databricks")
 mlflow.set_registry_uri("databricks-uc")
 mlflow.pytorch.autolog(checkpoint=False, log_every_n_epoch=100, log_datasets=True, log_models=True)
-# ---------- AutoNHITS (hyperparameter search) ----------
+#---------- AutoNHITS (hyperparameter search) ----------
 def nhits_config(trial):
     # Keep training small & allow padding
     return {
@@ -188,10 +189,10 @@ results = results[results["state"] == "COMPLETE"].sort_values(by="value", ascend
 best_row = results.iloc[0]
 best_params = {k.replace("params_", ""): best_row[k] for k in results.columns if k.startswith("params_")}
 display(best_params)
-# ---------- Build a safe parameter set ----------
+#--------- Build a safe parameter set ----------
 df = data.toPandas()
 df["ds"] = pd.to_datetime(df["ds"])
-# per-series lengths
+#per-series lengths
 lens = (
     df.groupby("CompanyCode")["ds"]
       .size()
@@ -201,7 +202,7 @@ safe_cap = max(2, min(int(lens.min()) - FORECAST_LENGTH, 12))  # prevent oversiz
 safe_params = dict(best_params)
 safe_params["start_padding_enabled"] = True
 safe_params["input_size"] = int(min(safe_params.get("input_size", safe_cap), safe_cap))
-# ---------- PyFunc wrapper ----------
+#---------- PyFunc wrapper ----------
 class NeuralForecastPyFunc(mlflow.pyfunc.PythonModel):
     def load_context(self, context):
         import cloudpickle
@@ -212,7 +213,7 @@ class NeuralForecastPyFunc(mlflow.pyfunc.PythonModel):
             raise TypeError("model_input must be a pandas DataFrame")
         # intervals disabled for stability; add level=[90] later if needed
         return self.nf.predict(df=model_input)
-# ---------- Train + Log + Register ----------
+#---------- Train + Log + Register ----------
 with mlflow.start_run() as run:
     # 1) Train final NHITS with SAFE params
     final_model = NeuralForecast(
@@ -242,14 +243,14 @@ with mlflow.start_run() as run:
         model_uri=f"runs:/{run.info.run_id}/model",
         name=registry_name
     )
-# 6) Set alias once (outside the run)
+#6) Set alias once (outside the run)
 mlflow_client = MlflowClient()
 mlflow_client.set_registered_model_alias(
     name=registry_name,
     alias="prod",
     version=model.version
 )
-# 7) Plot predictions (ID column correct)
+#7) Plot predictions (ID column correct)
 from utilsforecast.plotting import plot_series
 plot_series(train_data_df, prediction, id_col="CompanyCode")
 print("Shortest series length:", int(lens.min()))
@@ -259,19 +260,20 @@ assert safe_params["input_size"] + FORECAST_LENGTH <= int(lens.min()), \
     "input_size + horizon must not exceed the shortest series length"
  
 After execution of the above code, You can see Model "Cash_liquidity_nhits"
+
+#  -----------------------------------------------------------------------------------------------
  
  
- 
-Step 8 :  
+# STEP 8:
 Forecast the cash flow by using the trained model and applying it to the data product Cashflow.
  
  
-# Install dependencies
+#Install dependencies
 %pip install pydantic==1.10.13
 %pip install mlflow
 %pip install neuralforecast==3.1.2
 %restart_python
-# ---------- Imports ----------
+#---------- Imports ----------
 import pandas as pd
 import os
 import pickle
