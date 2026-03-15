@@ -3,7 +3,7 @@
 Login to SAP Business Data Cloud Cockpit and click on Searchto navigate to the Data Catalog and 
 Search for the data product Cashflow and click on the tile to open.
  
- 
+![Data Profuct](./image1.png)
  
  
 # ----------------------------------------------------------------------------------------------- 
