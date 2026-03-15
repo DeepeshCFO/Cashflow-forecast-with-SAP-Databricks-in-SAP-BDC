@@ -152,7 +152,7 @@ full_name = f"{catalog}.{schema}.{table}"
 data = spark.read.table(full_name).select("ds", "CompanyCode", "y")
 data = data.withColumn("y", col("y").cast("float"))
 FORECAST_LENGTH = 6
-# Train/test split by last 'h' dates
+#Train/test split by last 'h' dates
 unique_date = data.select("ds").distinct().orderBy("ds")
 test_date = spark.createDataFrame(unique_date.tail(FORECAST_LENGTH))   # last h dates
 train_date = unique_date.join(test_date, "ds", "leftanti")
@@ -284,24 +284,24 @@ from mlflow.client import MlflowClient
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
 from delta import *
-# ---------- Catalog / Table ----------
+#---------- Catalog / Table ----------
 catalog = "deep_uc_cash_liquidity_forecast_1"
 schema  = "grp01"
 table   = "prepared_cash_flow_time_series"
 full_name = f"{catalog}.{schema}.{table}"
-# ---------- Load & basic prep ----------
+#---------- Load & basic prep ----------
 time_series_data = (
     spark.read.table(full_name)
     .select("ds", "CompanyCode", "y")
     .withColumn("y", col("y").cast("float"))
 )
 time_series_df = time_series_data.toPandas()
-# ---------- Load UC Model ----------
+#---------- Load UC Model ----------
 mlflow.set_registry_uri("databricks-uc")
 model = mlflow.pyfunc.load_model(
     "models:/deep_uc_cash_liquidity_forecast_1.grp01.cash_liquidity_nhits/1"
 )
-# ---------- Predict ----------
+#---------- Predict ----------
 prediction = model.predict(time_series_df)
 prediction = prediction.rename(
     mapper={
@@ -312,7 +312,7 @@ prediction = prediction.rename(
     },
     axis=1
 )
-# ---------- Save to Delta Lake ----------
+#---------- Save to Delta Lake ----------
 prediction = spark.createDataFrame(prediction)
 prediction = prediction.withColumn("date", col("date").cast("date"))
 prediction = prediction.withColumn("CompanyCode", col("CompanyCode").cast("string"))
@@ -324,9 +324,9 @@ prediction.write.format("delta")\
  
 After execution of above code, You can find generated table:
  
+# -----------------------------------------------------------------------------------------------
  
- 
-Step 9:  
+# STEP 9:
 To  publish the cashflow prediction results to the data catalog of SAP Business Data Cloud. For that you can build a custom data product by using the python library sap-bdc-connect-sdk. You can utilize the Delta Share protocol, which allows you share the data product without the need of copying the result table. The result table remains persisted in SAP Databricks, and will be remotely accessible from the data catalog.
  
  
