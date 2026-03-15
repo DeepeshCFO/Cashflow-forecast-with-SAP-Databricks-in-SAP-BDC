@@ -5,19 +5,20 @@ Search for the data product Cashflow and click on the tile to open.
  
 ![Data Profuct](./image1.png)
  
- 
+![Data Profuct](./image2.png)
 # ----------------------------------------------------------------------------------------------- 
 # STEP 2: 
 On the detail page click on the Share-button and share with linked Databricks system.
  
- 
+
+![Data Profuct](./image3.png)
  
  
 # -----------------------------------------------------------------------------------------------
 # STEP 3:
 Login SAP Databricks and navigate to the Unity Catalog  Navigate to the Delta Shares Received, find the table cashflow.
  
- 
+![Data Profuct](./image4.png)
  
 # ----------------------------------------------------------------------------------------------- 
 # STEP 4:
@@ -260,6 +261,8 @@ assert safe_params["input_size"] + FORECAST_LENGTH <= int(lens.min()), \
     "input_size + horizon must not exceed the shortest series length"
  
 After execution of the above code, You can see Model "Cash_liquidity_nhits"
+
+![Data Profuct](./image5-Step7 last.png)
 
 #  -----------------------------------------------------------------------------------------------
  
