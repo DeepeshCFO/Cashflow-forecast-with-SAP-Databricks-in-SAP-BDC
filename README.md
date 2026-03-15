@@ -30,6 +30,7 @@ Before you start writing the code to get the timeseries data and to generate tra
 # STEP 5:
 Following code is to use the cashflow data product and Prepare data for time series forecasting
  
+```Pyspark
 %pip install databricks-feature-engineering==0.13.0
 %restart_python
 from pyspark.sql import SparkSession
@@ -80,12 +81,13 @@ fe_client.write_table(
     df= time_series_data,
     mode="merge"
 )
-
 # ----------------------------------------------------------
+````
 
 # STEP 6:
  In case, your volume of data is too small then increase the volume of data by some random values else you will find issues running the code to train the model. 
- 
+
+```
 from pyspark.sql import SparkSession
 #from databricks.feature_engineering import FeatureEngineeringClient, FeatureLookup
 from pyspark.sql import functions as F
@@ -265,7 +267,9 @@ assert safe_params["input_size"] + FORECAST_LENGTH <= int(lens.min()), \
  
 After execution of the above code, You can see Model "Cash_liquidity_nhits"
 
+````
 ![Data Profuct](./image5 - Step7 last.png)
+
 
 # ----------------------------------------------------------
  
@@ -273,7 +277,7 @@ After execution of the above code, You can see Model "Cash_liquidity_nhits"
 # STEP 8:
 Forecast the cash flow by using the trained model and applying it to the data product Cashflow.
  
- 
+```
 #Install dependencies
 %pip install pydantic==1.10.13
 %pip install mlflow
@@ -327,9 +331,9 @@ prediction.write.format("delta")\
     .option("delta.enableChangeDataFeed", "true")\
     .option("delta.enableDeletionVectors", "true")\
     .saveAsTable("deep_uc_cash_liquidity_forecast_1.grp01.cashflow_prediction")
- 
+
 After execution of above code, You can find generated table:
- 
+```` 
 # ----------------------------------------------------------
  
 # STEP 9:
